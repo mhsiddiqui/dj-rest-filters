@@ -1,0 +1,17 @@
+site_name: dj-rest-filters
+theme: material
+edit_uri: https://github.com/mhsiddiqui/dj-rest-filters/tree/master/docs
+repo_url: https://github.com/mhsiddiqui/dj-rest-filters/
+repo_name: Github
+site_author: Muhammad Hassan Siddiqui
+nav:
+    - Introduction: index.md
+    - Usage: usage.md
+    - Getting Started: getting_started.md
+    - Filters: filters.md
+    - Fields: filter_fields.md
+    - Releases: releases.md
+
+extra:
+  version:
+    provider: mike

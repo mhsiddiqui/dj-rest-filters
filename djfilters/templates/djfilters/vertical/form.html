@@ -1,0 +1,8 @@
+{% load rest_framework %}{% load i18n %}
+
+<form action="" method="get">
+    {% for field in form %}
+        {% render_field field style=style %}
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+</form>
