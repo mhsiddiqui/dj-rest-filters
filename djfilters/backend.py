@@ -57,9 +57,6 @@ class DjFilterBackend(object):
         form_renderer.default_style.mapping[filters.ListField] = {
             'base_template': 'textarea.html'
         }
-        form_renderer.default_style.mapping[filters.DictField] = {
-            'base_template': 'textarea.html'
-        }
         return form_renderer.render(
             filter_class.data, {},
             {'style': {'template_pack': 'djfilters/vertical'}}

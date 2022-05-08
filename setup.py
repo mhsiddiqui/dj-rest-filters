@@ -11,6 +11,12 @@ def read(*parts):
         return fp.read()
 
 
+def get_requirements():
+    with open('requirements.txt') as f:
+        required = f.read().splitlines()
+    return required
+
+
 def find_version(*file_paths):
     version_file = read(*file_paths)
     version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
@@ -33,7 +39,7 @@ setup(
     keywords='django filters filter-backend dj-rest-filters'.split(),
     platforms=['any'],
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Framework :: Django :: 1.10',
@@ -60,9 +66,5 @@ setup(
     include_package_data=True,
     zip_safe=False,
     python_requires='>=3',
-    extras_require={
-        'django': ['Django>1.10'],
-        'six': ['six>1.1'],
-        'djangorestframework': ['djangorestframework>3.3']
-    }
+    install_requires=get_requirements()
 )
