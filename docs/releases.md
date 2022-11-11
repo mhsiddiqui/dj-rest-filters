@@ -1,6 +1,9 @@
 # Releases
 
-## v1.0 ([latest](/en/latest/))
+## v1.0.1 ([latest](/en/latest/))
+Bug fixing
+
+## v1.0.0
 Features included
 
 1. Simple Filters (For filtering and validation)

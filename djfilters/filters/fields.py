@@ -14,7 +14,6 @@ from rest_framework.fields import FloatField as RestFloatField
 from rest_framework.fields import IntegerField as RestIntegerField
 from rest_framework.fields import IPAddressField as RestIPAddressField
 from rest_framework.fields import ListField as RestListField
-from rest_framework.fields import NullBooleanField as RestNullBooleanField
 from rest_framework.fields import SlugField as RestSlugField
 from rest_framework.fields import TimeField as RestTimeField
 from rest_framework.fields import URLField as RestURLField
@@ -23,6 +22,12 @@ from rest_framework.relations import \
     PrimaryKeyRelatedField as RestPrimaryKeyRelatedField
 from rest_framework.relations import SlugRelatedField as RestSlugRelatedField
 from rest_framework.utils import json
+
+try:
+    from rest_framework.fields import NullBooleanField as RestNullBooleanField
+except ImportError:
+    # For Django Rest >= 3.14
+    from rest_framework.fields import BooleanField as RestNullBooleanField
 
 
 class FilterField(object):

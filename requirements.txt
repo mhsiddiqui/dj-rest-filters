@@ -1,5 +1,5 @@
 Django>1.10
-djangorestframework>3.3
+djangorestframework
 six
 pytz
 mkdocs-material
