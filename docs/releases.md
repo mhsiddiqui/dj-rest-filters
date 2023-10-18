@@ -1,6 +1,9 @@
 # Releases
 
-## v1.0.2 ([latest](/en/latest/))
+## v1.0.3 ([latest](/en/latest/))
+Bug fixing
+
+## v1.0.2
 Added support for Django 4.2 and Python 3.11
 
 ## v1.0.1

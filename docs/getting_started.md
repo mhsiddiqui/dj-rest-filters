@@ -16,7 +16,7 @@ INSTALLED_APPS = [
 ```
 
 ## Requirements
-* **Python**: >3.5
+* **Python**: >3.6
 * **Django**: >1.10
 * **DRF**: >3.3
 
