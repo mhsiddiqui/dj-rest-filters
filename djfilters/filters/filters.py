@@ -22,8 +22,8 @@ from .fields import (BooleanField, CharField, ChoiceField, DateField,
 @six.add_metaclass(SerializerMetaclass)
 class Filter(Serializer):
     def __init__(self, instance=None, data=empty, queryset=None, **kwargs):
-        if queryset is None:
-            queryset = getattr(self, '_meta', self.Meta).model._default_manager.all()
+        if queryset is None and hasattr(self, 'Meta'):
+            queryset = getattr(self, 'Meta').model._default_manager.all()
         self.queryset = queryset
         self.request = kwargs.pop('request', None)
         super(Filter, self).__init__(instance, data, **kwargs)

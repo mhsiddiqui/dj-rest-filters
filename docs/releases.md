@@ -1,6 +1,9 @@
 # Releases
 
-## v1.0.3 ([latest](/en/latest/))
+## v1.0.4 ([latest](/en/latest/))
+Bug fixing
+
+## v1.0.3
 Bug fixing
 
 ## v1.0.2
