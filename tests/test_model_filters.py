@@ -126,7 +126,7 @@ class ModelFilterCoreTestCase(BaseTestCase):
         self.validation_error(
             queryset=TextModel.objects.all(),
             filter_class=Filter,
-            message="Field name `another` is not valid for model `TextModel`.",
+            message="Field name `another` is not valid for model `TextModel`",
             exception=django_exceptions.ImproperlyConfigured
         )
 

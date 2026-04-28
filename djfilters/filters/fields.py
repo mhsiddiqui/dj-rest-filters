@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from django.core.validators import EMPTY_VALUES
 from rest_framework.fields import CharField as RestCharField
 from rest_framework.fields import ChoiceField as RestChoiceField
@@ -37,10 +35,8 @@ class FilterField(object):
         self.distinct = kwargs.pop('distinct', False)
         self.exclude = kwargs.pop('exclude', False)
         self.extra = kwargs
-        required = kwargs.pop('required', None)
-        if not required:
-            required = False
-        super(FilterField, self).__init__(required=required, **kwargs)
+        kwargs.setdefault('required', False)
+        super(FilterField, self).__init__(**kwargs)
 
     def filter(self, qs, value):
         if value in EMPTY_VALUES:
@@ -72,7 +68,7 @@ class FilterField(object):
         Get nested value from a dictionary
         """
         field_ptr = 1
-        while isinstance(value, dict):
+        while isinstance(value, dict) and field_ptr < len(parts):
             value = value.get(parts[field_ptr])
             field_ptr += 1
         return value
@@ -220,12 +216,22 @@ class ListField(FilterField, RestListField):
 
     def get_value(self, dictionary):
         value = super(ListField, self).get_value(dictionary)
-        if len(value) == 1:
-            if re.match(r"\[([\"']?[a-zA-Z0-9][\"']?,? ?)+\]", value[0]):
-                value = json.loads(value[0])
-            elif re.match(r"([A-Za-z0-9]{seperator}?)+".format(seperator=self.separator), value[0]):
-                value = value[0].split(self.separator)
+        if isinstance(value, list) and len(value) == 1 and isinstance(value[0], str):
+            parsed = self._parse_string(value[0])
+            if parsed is not None:
+                value = parsed
         return value
+
+    def _parse_string(self, raw):
+        stripped = raw.strip()
+        if stripped.startswith('[') and stripped.endswith(']'):
+            try:
+                return json.loads(stripped)
+            except ValueError:
+                return None
+        if self.separator in stripped:
+            return stripped.split(self.separator)
+        return None
 
 
 class RangeField(ListField):

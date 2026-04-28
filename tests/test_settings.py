@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.messages',
     'django.contrib.sessions',
+    'rest_framework',
     'djfilters',
     'tests',
 ]

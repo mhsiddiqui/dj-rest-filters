@@ -26,11 +26,12 @@ class MySimpleFilter(filters.Filter):
     id = filters.IntegerField(max_value=100, min_value=1)
     title = filters.CharField(max_length=100, min_length=10)
 
-    def validate(self, attr):
-        # Write your validation logic here
+    def validate(self, attrs):
+        # `attrs` is the dict of all validated fields. Cross-field
+        # validation goes here.
         if your_check_here:
             raise filters.ValidationError('Your error message here')
-        return attr
+        return attrs
 
     # Or field validation only
     
@@ -98,10 +99,28 @@ Similar to `fields`, `exclude` option can also be used to exclude some fields fr
 **Note**: Nested filters are not supported so adding `depth` or any field which is actually a filter will raise an error.
 
 ### Validation
-Custom validation can applied in same way as for simple filters.
+Custom validation works the same way as for simple filters — define `validate(self, attrs)` for cross-field checks or `validate_<field>(self, value)` for per-field checks.
 
-### Filter
-Custom filtering can be applied in similar way as for simple filters.
+### Custom Filtering
+A `ModelFilter` can override how an individual field translates to an ORM query by defining `filter_<field>(self, qs, value)`. This is invoked instead of the default ORM lookup whenever a non-empty value is supplied for that field:
+
+```python
+from django.db.models import Q
+
+class TodoFilter(filters.ModelFilter):
+    search = filters.CharField()  # not a model field — declared explicitly
+
+    class Meta:
+        model = Todo
+        fields = ('completed', 'search')
+
+    def filter_search(self, qs, value):
+        return qs.filter(Q(title__icontains=value) | Q(detail__icontains=value))
+```
+
+`?search=foo&completed=true` runs `Todo.objects.filter(completed=True).filter(Q(title__icontains='foo') | Q(detail__icontains='foo'))`. The `completed` field uses the default ORM lookup; `search` is dispatched to `filter_search`.
+
+You can also override the entire `filter(validated_data)` method on a `ModelFilter` for full control — see the simple filter example above.
 
 ### Foreign Keys
 

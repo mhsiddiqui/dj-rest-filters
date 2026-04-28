@@ -1,17 +1,48 @@
-# Fields Guild
+# Fields Guide
 
 Filter fields handle converting between primitive values and internal datatypes. They also deal with validating input values with builtin as well as custom validation methods. They also provide builtin as well as custom filtering methods. 
 
 ## Core Arguments
 
 ### lookup_expr
-Lookup expression is the operation used to filter data from your model. By default, its value for most of the fields is `exact`. But it can be overridden by any of the expressions supported by Django.
+The Django ORM lookup applied to the field. Any [field lookup that Django supports](https://docs.djangoproject.com/en/stable/ref/models/querysets/#field-lookups) is valid here, including:
+
+| `lookup_expr`     | Translated query                | Notes                                 |
+|-------------------|---------------------------------|---------------------------------------|
+| `exact` (default) | `field=value`                   | Default for most fields               |
+| `iexact`          | `field__iexact=value`           | Case-insensitive exact match          |
+| `contains`        | `field__contains=value`         | Substring match                       |
+| `icontains`       | `field__icontains=value`        | Case-insensitive substring match      |
+| `startswith` / `endswith` | `field__startswith=value` |                                       |
+| `gt` / `gte` / `lt` / `lte` | `field__gt=value`     | Comparison                            |
+| `in`              | `field__in=value`               | Default for `ListField`               |
+| `range`           | `field__range=value`            | Default for `RangeField`              |
+| `isnull`          | `field__isnull=True`            | NULL check                            |
+| `regex` / `iregex` | `field__regex=value`           | Regular-expression match              |
+| `date` / `year` / `month` / `day` | `field__date=value` | Date-component lookups for `DateTimeField` |
+
+```python
+class TodoFilter(filters.Filter):
+    title  = filters.CharField(lookup_expr='icontains')
+    score  = filters.IntegerField(lookup_expr='gte')
+    tags   = filters.ListField(child=filters.CharField())            # __in
+    window = filters.RangeField(child=filters.DateField())           # __range
+```
+
+**Per-field defaults:** `lookup_expr` defaults to `exact` for every field except `ListField` (`in`) and `RangeField` (`range`).
 
 ### distinct
-With this argument, you can control if you want to apply distinct function to your queryset.
+If `True`, applies `.distinct()` to the queryset when the filter runs. Useful when filtering across reverse-FK or M2M relations to avoid duplicate rows.
 
 ### exclude
-Its boolean parameter control if you want to apply the `filter` of `exclude` operation in your filter. If `exclude=True` then data according to provided query parameters will be excluded from queryset.
+If `True`, the field uses `queryset.exclude(...)` instead of `queryset.filter(...)`, so matches are removed from the result instead of kept:
+
+```python
+class TodoFilter(filters.Filter):
+    archived_title = filters.CharField(source='title', exclude=True, lookup_expr='icontains')
+```
+
+`?archived_title=draft` returns todos whose title does **not** contain "draft".
 
 ### required
 With this argument, a field can be marked as required or optional. Contrary to the serializer, by default, it will be `False` in filters.
@@ -224,16 +255,22 @@ A list field which is used for range filtering. In this field, list must have 2 
 * `allow_empty` - Designates if empty lists are allowed.
 * `separator`- A separator which will be used to split values. By default it is `,`.
 
-The value of `lookup_expr` for `ListField` is `range`. By default range operation use `gte` and `lte` lookup expression. This can be overriden by providing `lookup_expr` in list for like `lookup_expr=['gt', 'lt']`. Values should be in same order for this to work properly.
+The default `lookup_expr` for `RangeField` is `range`, which uses Django's built-in `__range` lookup (inclusive on both ends, equivalent to `>= lower AND <= upper`). The translated query is `scores__range=[10, 20]`.
 
-For example, to validate a list of integers you might use something like the following:
+If you need different bounds, pass a two-item list as `lookup_expr` and the field will apply each lookup positionally. For example, `lookup_expr=['gt', 'lt']` produces `scores__gt=10 AND scores__lt=20` (exclusive on both ends). Values must be supplied in the same order as the lookups.
+
 ```python
+# Inclusive range (default): scores__range=[10, 20]
 scores = filters.RangeField(
    child=filters.IntegerField(min_value=0, max_value=100)
 )
 
+# Exclusive range: scores__gt=10 AND scores__lt=20
+scores = filters.RangeField(
+   lookup_expr=['gt', 'lt'],
+   child=filters.IntegerField(min_value=0, max_value=100)
+)
 ```
-Its query will be `scores__range=[10, 20]`.
 
 ## Custom Field
 

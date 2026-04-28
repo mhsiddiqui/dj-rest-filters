@@ -16,7 +16,10 @@ INSTALLED_APPS = [
 ```
 
 ## Requirements
-* **Python**: >3.6
-* **Django**: >1.10
-* **DRF**: >3.3
+
+| | Minimum | Tested up to |
+|---|---|---|
+| Python | 3.8 | 3.14 |
+| Django | 3.2 | 5.2 |
+| Django REST Framework | 3.12 | 3.17 |
 
