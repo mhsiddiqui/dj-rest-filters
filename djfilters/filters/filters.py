@@ -1,7 +1,6 @@
 import copy
 from collections import OrderedDict
 
-import six
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models import DurationField as ModelDurationField
@@ -19,8 +18,7 @@ from .fields import (BooleanField, CharField, ChoiceField, DateField,
                      TimeField, URLField)
 
 
-@six.add_metaclass(SerializerMetaclass)
-class Filter(Serializer):
+class Filter(Serializer, metaclass=SerializerMetaclass):
     def __init__(self, instance=None, data=empty, queryset=None, **kwargs):
         if queryset is None and hasattr(self, 'Meta'):
             queryset = getattr(self, 'Meta').model._default_manager.all()
@@ -45,7 +43,7 @@ class Filter(Serializer):
     def filter(self, validated_data):
 
         qs = self.queryset.all()
-        for name, filter_ in six.iteritems(self.fields):
+        for name, filter_ in self.fields.items():
             if filter_.source != name:
                 if '.' in filter_.source:
                     name = filter_.source.split('.')[0]
@@ -172,8 +170,13 @@ class ModelFilter(Filter, ModelSerializer):
         for field_name in field_names:
             # If the field is explicitly declared on the class then use that.
             if field_name in declared_fields:
-                if field_name == 'slug_fk':
-                    assert isinstance(declared_fields[field_name], Filter) is False, 'Nested filters are not supported'
+                assert not isinstance(declared_fields[field_name], Filter), (
+                    "Nested filters are not supported "
+                    "(field '{field_name}' on filter {filter_class}).".format(
+                        field_name=field_name,
+                        filter_class=self.__class__.__name__,
+                    )
+                )
                 fields[field_name] = declared_fields[field_name]
                 continue
 
@@ -289,10 +292,11 @@ class ModelFilter(Filter, ModelSerializer):
                 )
                 fields.remove(field_name)
 
+        filter_overridden = type(self).filter is not Filter.filter
         for field_name, field in declared_fields.items():
             assert (
                 hasattr(self, 'filter_{field_name}'.format(field_name=field_name)) or
-                not super(ModelFilter, self).filter == self.filter or
+                filter_overridden or
                 field.source
             ), (
                 "The field '{field_name}' was included on filter but no filter method is defined. "

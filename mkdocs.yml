@@ -6,10 +6,12 @@ repo_name: Github
 site_author: Muhammad Hassan Siddiqui
 nav:
     - Introduction: index.md
-    - Usage: usage.md
     - Getting Started: getting_started.md
+    - Usage: usage.md
     - Filters: filters.md
     - Fields: filter_fields.md
+    - Query Parameters: query_parameters.md
+    - Swagger / OpenAPI: swagger.md
     - Releases: releases.md
 
 extra:

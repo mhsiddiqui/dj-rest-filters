@@ -1004,6 +1004,63 @@ class ListFieldTestCases(BaseTestCase):
             all([v.number in [3, 4, 5] for v in filtered_queryset])
         )
 
+    def test_with_multi_character_json_numbers(self):
+        class Filter(filters.Filter):
+            number = filters.ListField(child=filters.IntegerField(min_value=0, max_value=100))
+
+        request, view, filtered_queryset = self.filter_query(
+            filter_class=Filter,
+            queryset=NumberModel.objects.all(),
+            query={'number': '[12,34,56]'}
+        )
+        self.assertTrue(
+            all([v.number in [12, 34, 56] for v in filtered_queryset])
+        )
+
+    def test_with_multi_character_comma_separated_numbers(self):
+        class Filter(filters.Filter):
+            number = filters.ListField(child=filters.IntegerField(min_value=0, max_value=100))
+
+        request, view, filtered_queryset = self.filter_query(
+            filter_class=Filter,
+            queryset=NumberModel.objects.all(),
+            query={'number': '12,34,56'}
+        )
+        self.assertTrue(
+            all([v.number in [12, 34, 56] for v in filtered_queryset])
+        )
+
+    def test_with_quoted_json_strings(self):
+        baker.make(TextModel, char='alpha')
+        baker.make(TextModel, char='beta')
+        baker.make(TextModel, char='gamma')
+
+        class Filter(filters.Filter):
+            char = filters.ListField(child=filters.CharField())
+
+        request, view, filtered_queryset = self.filter_query(
+            filter_class=Filter,
+            queryset=TextModel.objects.all(),
+            query={'char': '["alpha","beta"]'}
+        )
+        chars = sorted(filtered_queryset.values_list('char', flat=True))
+        self.assertEqual(chars, ['alpha', 'beta'])
+
+    def test_with_malformed_json_falls_back_to_raw_value(self):
+        baker.make(TextModel, char='[abc]')
+        baker.make(TextModel, char='alpha')
+
+        class Filter(filters.Filter):
+            char = filters.ListField(child=filters.CharField())
+
+        request, view, filtered_queryset = self.filter_query(
+            filter_class=Filter,
+            queryset=TextModel.objects.all(),
+            query={'char': '[abc]'}
+        )
+        chars = sorted(filtered_queryset.values_list('char', flat=True))
+        self.assertEqual(chars, ['[abc]'])
+
 
 class RangeFieldTestCases(BaseTestCase):
     @classmethod
@@ -1069,4 +1126,30 @@ class RangeFieldTestCases(BaseTestCase):
         )
         self.assertTrue(
             all([(5 < v.number < 10) for v in filtered_queryset])
+        )
+
+    def test_with_comma_separated_string(self):
+        class Filter(filters.Filter):
+            number = filters.RangeField(child=filters.IntegerField(min_value=0, max_value=100))
+
+        request, view, filtered_queryset = self.filter_query(
+            filter_class=Filter,
+            queryset=NumberModel.objects.all(),
+            query={'number': '5,10'}
+        )
+        self.assertTrue(
+            all([(5 <= v.number <= 10) for v in filtered_queryset])
+        )
+
+    def test_with_bracketed_json_string(self):
+        class Filter(filters.Filter):
+            number = filters.RangeField(child=filters.IntegerField(min_value=0, max_value=100))
+
+        request, view, filtered_queryset = self.filter_query(
+            filter_class=Filter,
+            queryset=NumberModel.objects.all(),
+            query={'number': '[5,10]'}
+        )
+        self.assertTrue(
+            all([(5 <= v.number <= 10) for v in filtered_queryset])
         )
